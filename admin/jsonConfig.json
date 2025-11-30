@@ -1,0 +1,48 @@
+{
+    "type": "panel",
+    "i8n": true,
+    "items": {
+        "serialPort": {
+            "type": "selectSendTo",
+            "name": "serialPort",
+            "label": "Serial port",
+            "command": "list",
+            "default": ""
+        },
+        "baudRate": {
+            "type": "select",
+            "name": "baudRate",
+            "label": {
+                "en": "Baud rate",
+                "de": "Baudrate"
+            },
+            "options": [
+                {
+                    "value": "4800",
+                    "label": "4800"
+                },
+                {
+                    "value": "9600",
+                    "label": "9600"
+                },
+                {
+                    "value": "19200",
+                    "label": "19200"
+                },
+                {
+                    "value": "38400",
+                    "label": "38400"
+                },
+                {
+                    "value": "57600",
+                    "label": "57600"
+                },
+                {
+                    "value": "115200",
+                    "label": "115200"
+                }
+            ],
+            "default": "9600"
+        }
+    }
+}
