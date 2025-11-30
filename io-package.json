@@ -37,6 +37,10 @@
         "icon": "serial-gps.svg",
         "dataSource": "push",
         "tier": 3,
+        "nogit": true,
+        "adminUI": {
+            "config": "json"
+        },
         "keywords": ["gps"],
         "enabled": true,
         "compact": true,
@@ -54,10 +58,9 @@
             "license": "MIT"
         }
     },
-    "protectedNative": ["login", "pass"],
     "native": {
         "serialPort": "/dev/ttyUSB0",
-        "baudRate": "4800"
+        "baudRate": 4800
     },
     "objects": [],
     "instanceObjects": [
@@ -111,7 +114,7 @@
                     "zh-cn": "纬度"
                 },
                 "type": "number",
-                "role": "value.latitude",
+                "role": "value.gps.latitude",
                 "unit": "°",
                 "read": true,
                 "write": false,
@@ -137,11 +140,59 @@
                     "zh-cn": "经度"
                 },
                 "type": "number",
-                "role": "value.longitude",
+                "role": "value.gps.longitude",
                 "unit": "°",
                 "read": true,
                 "write": false,
                 "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "gps.position",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Position (lon;lat)",
+                    "de": "Position (lon;lat)",
+                    "ru": "Позиция (долгота; широта)",
+                    "pt": "Posição (lon;lat)",
+                    "nl": "Positie (lon;lat)",
+                    "fr": "Position (lon;lat)",
+                    "it": "Posizione (lon;lat)",
+                    "es": "Posición (lon;lat)",
+                    "pl": "Pozycja (lon;lat)",
+                    "uk": "Позиція (довгота; широта)",
+                    "zh-cn": "位置（经度；纬度）"
+                },
+                "type": "string",
+                "role": "value.gps",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "gps.latlon",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Position (lat;lon)",
+                    "de": "Position (lat;lon)",
+                    "ru": "Позиция (широта;долгота)",
+                    "pt": "Posição (lat;lon)",
+                    "nl": "Positie (lat;lon)",
+                    "fr": "Position (lat;lon)",
+                    "it": "Posizione (lat;lon)",
+                    "es": "Posición (lat;lon)",
+                    "pl": "Pozycja (lat;lon)",
+                    "uk": "Позиція (широта;довгота)",
+                    "zh-cn": "位置（纬度；经度）"
+                },
+                "type": "string",
+                "role": "value",
+                "read": true,
+                "write": false
             },
             "native": {}
         },
@@ -161,7 +212,6 @@
                     "pl": "Prędkość (km/h)",
                     "uk": "Швидкість (км/год)",
                     "zh-cn": "速度（公里/小时）"
-
                 },
                 "type": "number",
                 "role": "value.speed",
@@ -242,7 +292,7 @@
                     "zh-cn": "海拔"
                 },
                 "type": "number",
-                "role": "value.altitude",
+                "role": "value.gps.altitude",
                 "unit": "m",
                 "read": true,
                 "write": false,

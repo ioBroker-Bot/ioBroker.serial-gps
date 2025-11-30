@@ -56,6 +56,7 @@ export class IotAdapter extends Adapter {
     private serialPort?: SerialPort;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private lastStates = new Map<string, { val: any; ts: number }>();
+    private recvBuffer = '';
 
     public constructor(options: Partial<AdapterOptions> = {}) {
         super({
@@ -77,24 +78,19 @@ export class IotAdapter extends Adapter {
                             if (obj.callback) {
                                 try {
                                     // read all found serial ports
-                                    SerialPort.list()
-                                        .then(ports => {
-                                            this.log.info(`List of port: ${JSON.stringify(ports)}`);
-                                            this.sendTo(
-                                                obj.from,
-                                                obj.command,
-                                                ports.map(item => ({
-                                                    label: item.path,
-                                                    value: item.path,
-                                                })),
-                                                obj.callback,
-                                            );
-                                        })
-                                        .catch(e => {
-                                            this.sendTo(obj.from, obj.command, [], obj.callback);
-                                            this.log.error(e);
-                                        });
+                                    const ports = await SerialPort.list();
+                                    this.log.info(`List of port: ${JSON.stringify(ports)}`);
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        ports.map(item => ({
+                                            label: item.path,
+                                            value: item.path,
+                                        })),
+                                        obj.callback,
+                                    );
                                 } catch (e) {
+                                    this.log.error(`Cannot list ports: ${e}`);
                                     this.sendTo(
                                         obj.from,
                                         obj.command,
@@ -109,6 +105,17 @@ export class IotAdapter extends Adapter {
                         case 'detectBaudRate':
                             if (obj.callback) {
                                 try {
+                                    const baudRate = await this.detectBaudRate(obj.message.serialPort);
+                                    if (baudRate) {
+                                        this.sendTo(obj.from, obj.command, { native: { baudRate } }, obj.callback);
+                                    } else {
+                                        this.sendTo(
+                                            obj.from,
+                                            obj.command,
+                                            { error: 'Cannot detect baud rate' },
+                                            obj.callback,
+                                        );
+                                    }
                                 } catch (e) {
                                     this.sendTo(
                                         obj.from,
@@ -120,11 +127,105 @@ export class IotAdapter extends Adapter {
                             }
 
                             break;
+
+                        case 'test':
+                            if (obj.callback) {
+                                try {
+                                    const result = await this.test(obj.message.serialPort, obj.message.baudRate);
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        {
+                                            result: result ? 'GPS Receiver detected' : 'GPS Receiver not detected',
+                                            error: !result ? 'GPS Receiver not detected' : undefined,
+                                        },
+                                        obj.callback,
+                                    );
+                                } catch (e) {
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        { error: `Test failed: ${e.message || e}` },
+                                        obj.callback,
+                                    );
+                                }
+                            }
+                            break;
                     }
                 }
             },
             ready: () => this.main(),
         });
+    }
+
+    private async test(port: string, baudRate: string | number): Promise<boolean> {
+        let portClosed = false;
+        if (this.config.serialPort === port) {
+            portClosed = true;
+            await this.closePort();
+        }
+        const result = await this.testPort(port, baudRate);
+        if (portClosed) {
+            await this.openPort();
+        }
+        return result;
+    }
+
+    private async testPort(port: string, baudRate: number | string): Promise<boolean> {
+        this.log.info(`Testing port ${port} with baud rate ${baudRate}`);
+        const testPort = new SerialPort({
+            path: port,
+            baudRate: parseInt(baudRate as string, 10),
+            autoOpen: false,
+        });
+        await new Promise<void>((resolve, reject) => {
+            testPort.open(err => {
+                if (err) {
+                    this.log.error(`Failed to open serial port ${port} at ${baudRate}: ${err.message || err}`);
+                    reject(err);
+                    return;
+                }
+                this.log.info(`Serial port opened for testing: ${port} @ ${baudRate}`);
+                resolve();
+            });
+        });
+
+        let receivedData = false;
+        let receiveBuffer = '';
+        const dataListener = (data: Buffer) => {
+            receiveBuffer += data.toString('utf8');
+            this.log.info(`Received data at baud rate ${baudRate}: ${receiveBuffer}`);
+            // try to detect specific NMEA sentence starts
+            if (
+                receiveBuffer.includes('$GPGGA') ||
+                receiveBuffer.includes('$GPRMC') ||
+                receiveBuffer.includes('$GNGGA') ||
+                receiveBuffer.includes('$GNRMC')
+            ) {
+                receivedData = true;
+            }
+        };
+        testPort.on('data', dataListener);
+
+        // Wait up to 5 seconds for data
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
+
+        testPort.off('data', dataListener);
+        await new Promise<void>(resolve => {
+            testPort.close(err => {
+                if (err) {
+                    this.log.error(`Error closing test port: ${err.message || err}`);
+                }
+                this.log.info(`Test serial port closed: ${port} @ ${baudRate}`);
+                resolve();
+            });
+        });
+
+        if (receivedData) {
+            this.log.info(`Detected baud rate: ${baudRate}`);
+            return true;
+        }
+        return false;
     }
 
     private async detectBaudRate(port: string): Promise<number> {
@@ -136,55 +237,7 @@ export class IotAdapter extends Adapter {
         const baudRatesToTest = [4800, 9600, 19200, 38400, 57600, 115200];
         for (const baudRate of baudRatesToTest) {
             this.log.info(`Testing baud rate: ${baudRate}`);
-            const testPort = new SerialPort({
-                path: port,
-                baudRate,
-                autoOpen: false,
-            });
-            await new Promise<void>((resolve, reject) => {
-                testPort.open(err => {
-                    if (err) {
-                        this.log.error(`Failed to open serial port ${port} at ${baudRate}: ${err.message || err}`);
-                        reject(err);
-                        return;
-                    }
-                    this.log.info(`Serial port opened for testing: ${port} @ ${baudRate}`);
-                    resolve();
-                });
-            });
-
-            let receivedData = false;
-            const dataListener = (data: Buffer) => {
-                this.log.info(`Received data at baud rate ${baudRate}: ${data.toString('utf8')}`);
-                // try to detect specific NMEA sentence starts
-                const text = data.toString('utf8');
-                if (
-                    text.includes('$GPGGA') ||
-                    text.includes('$GPRMC') ||
-                    text.includes('$GNGGA') ||
-                    text.includes('$GNRMC')
-                ) {
-                    receivedData = true;
-                }
-            };
-            testPort.on('data', dataListener);
-
-            // Wait up to 5 seconds for data
-            await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
-
-            testPort.off('data', dataListener);
-            await new Promise<void>(resolve => {
-                testPort.close(err => {
-                    if (err) {
-                        this.log.error(`Error closing test port: ${err.message || err}`);
-                    }
-                    this.log.info(`Test serial port closed: ${port} @ ${baudRate}`);
-                    resolve();
-                });
-            });
-
-            if (receivedData) {
-                this.log.info(`Detected baud rate: ${baudRate}`);
+            if (await this.testPort(port, baudRate)) {
                 if (portClosed) {
                     await this.openPort();
                 }
@@ -234,8 +287,7 @@ export class IotAdapter extends Adapter {
         await this.setStateAsync(id, value, true);
     }
 
-    private async parseData(data: Buffer): Promise<void> {
-        const text = data.toString('utf8');
+    private async parseData(text: string): Promise<void> {
         // Split by '$' because some devices send multiple sentences in one chunk (sentences start with $)
         const parts = text
             .split('$')
@@ -273,6 +325,8 @@ export class IotAdapter extends Adapter {
                     if (lat !== null && lon !== null) {
                         await this.setStateIfChangedAsync('gps.latitude', lat);
                         await this.setStateIfChangedAsync('gps.longitude', lon);
+                        await this.setStateIfChangedAsync('gps.position', `${lon};${lat}`);
+                        await this.setStateIfChangedAsync('gps.latlon', `${lat};${lon}`);
                         this.log.debug(`GGA parsed: lat=${lat}, lon=${lon}`);
                     }
                     await this.setStateIfChangedAsync('gps.satellites', sats);
@@ -315,53 +369,73 @@ export class IotAdapter extends Adapter {
         // Close existing port if open
         await this.closePort();
 
-        this.serialPort = new SerialPort({
-            path: this.config.serialPort,
-            baudRate: this.config.baudRate,
-            autoOpen: false,
-        });
+        try {
+            this.serialPort = new SerialPort({
+                path: this.config.serialPort,
+                baudRate: parseInt(this.config.baudRate as string, 10) || 9600,
+                autoOpen: false,
+            });
 
-        this.serialPort.open(err => {
-            if (err) {
-                this.log.error(`Failed to open serial port ${this.config.serialPort}: ${err.message || err}`);
-                return;
-            }
-            this.log.info(`Serial port opened: ${this.config.serialPort} @ ${this.config.baudRate}`);
-        });
+            this.serialPort.open(err => {
+                if (err) {
+                    this.log.error(`Failed to open serial port ${this.config.serialPort}: ${err.message || err}`);
+                    return;
+                }
+                this.log.info(`Serial port opened: ${this.config.serialPort} @ ${this.config.baudRate}`);
+            });
 
-        this.serialPort.on('data', (data: Buffer) => {
-            if (this.reconnectTimer) {
-                clearTimeout(this.reconnectTimer);
-                this.reconnectTimer = null;
-            }
-            this.log.debug(`Serial data (${this.config.serialPort}): ${data.toString('hex')} / ${data.toString()}`);
-            // Process
-            this.parseData(data).catch(e =>
-                this.log.error(`Error processing serial data: ${(e as Error).message || e}`),
-            );
-        });
+            this.serialPort.on('data', async (data: Buffer): Promise<void> => {
+                if (this.reconnectTimer) {
+                    clearTimeout(this.reconnectTimer);
+                    this.reconnectTimer = null;
+                }
+                const chunk = data.toString('utf8');
+                this.recvBuffer += chunk;
 
-        this.serialPort.on('error', (err: Error) => {
-            this.log.error(`Serial port error (${this.config.serialPort}): ${err.message || err}`);
+                // process complete lines only (lines end with `\n`)
+                while (this.recvBuffer.indexOf('\n') !== -1) {
+                    const idx = this.recvBuffer.indexOf('\n');
+                    const line = this.recvBuffer.slice(0, idx + 1); // include newline
+                    this.recvBuffer = this.recvBuffer.slice(idx + 1);
+                    try {
+                        await this.parseData(line);
+                    } catch (e) {
+                        this.log.error(`Error processing serial data: ${(e as Error).message || e}`);
+                    }
+                }
+            });
+
+            this.serialPort.on('error', (err: Error) => {
+                this.log.error(`Serial port error (${this.config.serialPort}): ${err.message || err}`);
+                this.setStateIfChangedAsync('info.connection', false);
+
+                this.reconnectTimer ||= setTimeout(() => {
+                    this.reconnectTimer = null;
+                    this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
+                    this.openPort();
+                }, 5000);
+            });
+
+            this.serialPort.on('close', () => {
+                this.log.info(`Serial port closed: ${this.config.serialPort}`);
+                this.setStateIfChangedAsync('info.connection', false);
+
+                this.reconnectTimer ||= setTimeout(() => {
+                    this.reconnectTimer = null;
+                    this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
+                    this.openPort();
+                }, 5000);
+            });
+        } catch (error) {
+            // Cannot open port
+            this.log.error(`Error parsing serial port: ${error.message || error}`);
             this.setStateIfChangedAsync('info.connection', false);
-
             this.reconnectTimer ||= setTimeout(() => {
                 this.reconnectTimer = null;
                 this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
                 this.openPort();
             }, 5000);
-        });
-
-        this.serialPort.on('close', () => {
-            this.log.info(`Serial port closed: ${this.config.serialPort}`);
-            this.setStateIfChangedAsync('info.connection', false);
-
-            this.reconnectTimer ||= setTimeout(() => {
-                this.reconnectTimer = null;
-                this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
-                this.openPort();
-            }, 5000);
-        });
+        }
     }
 
     main(): void {

@@ -7,42 +7,93 @@
             "name": "serialPort",
             "label": "Serial port",
             "command": "list",
-            "default": ""
+            "default": "",
+            "lg": 2,
+            "md": 4,
+            "sm": 12
         },
         "baudRate": {
+            "newLine": true,
             "type": "select",
             "name": "baudRate",
-            "label": {
-                "en": "Baud rate",
-                "de": "Baudrate"
-            },
+            "label": "Baud rate",
+            "noTranslate": true,
             "options": [
                 {
-                    "value": "4800",
+                    "value": 4800,
                     "label": "4800"
                 },
                 {
-                    "value": "9600",
+                    "value": 9600,
                     "label": "9600"
                 },
                 {
-                    "value": "19200",
+                    "value": 19200,
                     "label": "19200"
                 },
                 {
-                    "value": "38400",
+                    "value": 38400,
                     "label": "38400"
                 },
                 {
-                    "value": "57600",
+                    "value": 57600,
                     "label": "57600"
                 },
                 {
-                    "value": "115200",
+                    "value": 115200,
                     "label": "115200"
                 }
             ],
-            "default": "9600"
+            "default": "9600",
+            "lg": 2,
+            "md": 4,
+            "sm": 12
+        },
+        "_detectBaudRate": {
+            "type": "sendTo",
+            "command": "detectBaudRate",
+            "label": "Detect baud rate",
+            "variant": "outlined",
+            "jsonData": "{ \"serialPort\": \"${data.serialPort}\" }",
+            "useNative": true,
+            "error": {
+                "Cannot detect baud rate": {
+                    "en": "Cannot detect baud rate",
+                    "de": "Kann Baudrate nicht erkennen",
+                    "ru": "Не удается определить скорость передачи данных"
+                }
+            },
+            "lg": 2,
+            "md": 4,
+            "sm": 12,
+            "showProcess": true
+        },
+        "_test": {
+            "newLine": "true",
+            "type": "sendTo",
+            "command": "test",
+            "label": "Test",
+            "variant": "contained",
+            "jsonData": "{ \"serialPort\": \"${data.serialPort}\", \"baudRate\": \"${data.baudRate}\" }",
+            "result": {
+                "GPS Receiver detected": {
+                    "en": "GPS Receiver detected",
+                    "de": "GPS Empfänger erkannt",
+                    "ru": "GPS-приемник обнаружен"
+                }
+            },
+            "error": {
+                "GPS Receiver not detected": {
+                    "en": "GPS Receiver not detected",
+                    "de": "GPS Empfänger nicht erkannt",
+                    "ru": "GPS-приемник не обнаружен"
+                }
+            },
+            "lg": 2,
+            "md": 4,
+            "sm": 12,
+            "showProcess": true,
+            "icon": "send"
         }
     }
 }
