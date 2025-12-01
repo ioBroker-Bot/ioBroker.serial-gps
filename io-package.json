@@ -63,7 +63,7 @@
     "enabled": true,
     "compact": true,
     "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.serial-gps/master/admin/serial-gps.svg",
-    "type": "utilities",
+    "type": "utility",
     "messagebox": true,
     "stopBeforeUpdate": true,
     "dependencies": [
