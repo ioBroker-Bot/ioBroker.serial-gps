@@ -51,12 +51,42 @@ function nmeaToDecimal(coord: string, hemi: string): number | null {
     return val;
 }
 
-export class IotAdapter extends Adapter {
+function parseNmeaDateTime(timeStr?: string, dateStr?: string): number | null {
+    if (!timeStr) {
+        return null;
+    }
+    // timeStr: hhmmss[.sss], dateStr: ddmmyy
+    const hh = parseInt(timeStr.slice(0, 2) || '0', 10);
+    const mm = parseInt(timeStr.slice(2, 4) || '0', 10);
+    const secFloat = parseFloat(timeStr.slice(4) || '0');
+    const ss = Math.floor(secFloat);
+    const ms = Math.round((secFloat - ss) * 1000);
+
+    let year = 1970, month = 0, day = 1;
+    if (dateStr && dateStr.length >= 6) {
+        day = parseInt(dateStr.slice(0, 2) || '1', 10);
+        month = (parseInt(dateStr.slice(2, 4) || '1', 10) - 1);
+        const yy = parseInt(dateStr.slice(4, 6) || '0', 10);
+        year = yy >= 70 ? 1900 + yy : 2000 + yy;
+    } else {
+        // Kein Datum verfügbar -> verwende heutiges Datum in UTC (nur Uhrzeit sinnvoll)
+        const now = new Date();
+        year = now.getUTCFullYear();
+        month = now.getUTCMonth();
+        day = now.getUTCDate();
+    }
+
+    return Date.UTC(year, month, day, hh, mm, ss, ms);
+}
+
+
+export class SerialGpsAdapter extends Adapter {
     declare config: SerialGpsAdapterConfig;
     private serialPort?: SerialPort;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private lastStates = new Map<string, { val: any; ts: number }>();
     private recvBuffer = '';
+    private lastDate = ''; // ddmmyy aus letztem RMC, für GGA Zeitkombination
 
     public constructor(options: Partial<AdapterOptions> = {}) {
         super({
@@ -207,8 +237,8 @@ export class IotAdapter extends Adapter {
         };
         testPort.on('data', dataListener);
 
-        // Wait up to 5 seconds for data
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
+        // Wait up to 2 seconds for data
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
 
         testPort.off('data', dataListener);
         await new Promise<void>(resolve => {
@@ -315,13 +345,22 @@ export class IotAdapter extends Adapter {
             try {
                 if (type.endsWith('GGA')) {
                     // $--GGA,time,lat,NS,lon,EW,fix,numSat,hdop,alt,altUnit,...
+                    const timeStr = fields[1];
                     const lat = nmeaToDecimal(fields[2], fields[3]);
                     const lon = nmeaToDecimal(fields[4], fields[5]);
                     const fix = parseInt(fields[6], 10) || 0;
                     const sats = parseInt(fields[7], 10) || 0;
                     const hdop = parseFloat(fields[8]) || 0;
                     const alt = parseFloat(fields[9]) || 0;
-
+                    if (timeStr) {
+                        const ts = parseNmeaDateTime(timeStr, this.lastDate || undefined);
+                        if (ts !== null) {
+                            await this.setStateIfChangedAsync('gps.timestamp', ts);
+                        }
+                    }
+                    if (!isNaN(fix)) {
+                        await this.setStateIfChangedAsync('gps.fix_quality', fix);
+                    }
                     if (lat !== null && lon !== null) {
                         await this.setStateIfChangedAsync('gps.latitude', lat);
                         await this.setStateIfChangedAsync('gps.longitude', lon);
@@ -337,24 +376,54 @@ export class IotAdapter extends Adapter {
                     await this.setStateIfChangedAsync('info.connection', connected);
                 } else if (type.endsWith('RMC')) {
                     // $--RMC,time,status,lat,NS,lon,EW,sog,cog,date,...
+                    const timeStr = fields[1];
                     const status = fields[2]; // A=active, V=void
                     const lat = nmeaToDecimal(fields[3], fields[4]);
                     const lon = nmeaToDecimal(fields[5], fields[6]);
                     const speedKnots = parseFloat(fields[7]) || 0;
                     const course = parseFloat(fields[8]) || 0;
+                    const dateStr = fields[9]; // ddmmyy
 
+                    // speichere Datum für spätere GGA-Zeiten
+                    if (dateStr) {
+                        this.lastDate = dateStr;
+                        await this.setStateIfChangedAsync('gps.date', dateStr);
+                    }
+                    // timestamp (Zeit + Datum)
+                    const ts = parseNmeaDateTime(timeStr, dateStr);
+                    if (ts !== null) {
+                        await this.setStateIfChangedAsync('gps.timestamp', ts);
+                    }
                     if (lat !== null && lon !== null) {
                         await this.setStateIfChangedAsync('gps.latitude', lat);
                         await this.setStateIfChangedAsync('gps.longitude', lon);
+                        await this.setStateIfChangedAsync('gps.position', `${lon};${lat}`);
+                        await this.setStateIfChangedAsync('gps.latlon', `${lat};${lon}`);
                         this.log.debug(`RMC parsed: lat=${lat}, lon=${lon}`);
                     }
                     // convert knots to km/h
                     const speedKmh = +(speedKnots * 1.852).toFixed(2);
-                    await this.setStateIfChangedAsync('gps.speed', speedKmh);
+                    await this.setStateIfChangedAsync('gps.speed_knots', speedKnots);
+                    await this.setStateIfChangedAsync('gps.speed_kmh', speedKmh);
                     await this.setStateIfChangedAsync('gps.course', course);
 
                     const connected = status === 'A';
                     await this.setStateIfChangedAsync('info.connection', connected);
+                } else if (type.endsWith('GSA')) {
+                    // $--GSA,mode,fixType,SV1,...,SV12,pdop,hdop,vdop
+                    const fixMode = fields[2] || '';
+                    const pdop = parseFloat(fields[15]) || 0;
+                    const hdop = parseFloat(fields[16]) || 0;
+                    const vdop = parseFloat(fields[17]) || 0;
+
+                    // fix_mode: '2' -> "2D", '3' -> "3D", sonst original
+                    const fixModeLabel = fixMode === '2' ? '2D' : fixMode === '3' ? '3D' : fixMode;
+
+                    await this.setStateIfChangedAsync('gps.fix_mode', fixModeLabel);
+                    await this.setStateIfChangedAsync('gps.pdop', pdop);
+                    // hdop wird ggf. bereits durch GGA gesetzt; trotzdem aktualisieren ist ok
+                    await this.setStateIfChangedAsync('gps.hdop', hdop);
+                    await this.setStateIfChangedAsync('gps.vdop', vdop);
                 } else {
                     // other sentence types can be handled if needed
                     this.log.silly(`Unhandled NMEA sentence: ${type}`);
@@ -446,8 +515,8 @@ export class IotAdapter extends Adapter {
 
 if (require.main !== module) {
     // Export the constructor in compact mode
-    module.exports = (options: Partial<AdapterOptions> | undefined) => new IotAdapter(options);
+    module.exports = (options: Partial<AdapterOptions> | undefined) => new SerialGpsAdapter(options);
 } else {
     // otherwise start the instance directly
-    (() => new IotAdapter())();
+    (() => new SerialGpsAdapter())();
 }
