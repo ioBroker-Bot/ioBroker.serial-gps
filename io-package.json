@@ -1,585 +1,602 @@
 {
-    "common": {
-        "name": "serial-gps",
-        "version": "0.0.3",
-        "news": {
-            "0.0.3": {
-                "en": "Initial release",
-                "de": "Erstausstrahlung",
-                "ru": "Первоначальное освобождение",
-                "pt": "Lançamento inicial",
-                "nl": "Eerste vrijgave",
-                "fr": "Libération initiale",
-                "it": "Rilascio iniziale",
-                "es": "Liberación inicial",
-                "pl": "Początkowe wydanie",
-                "uk": "Початковий реліз",
-                "zh-cn": "初步释放"
-            }
+  "common": {
+    "name": "serial-gps",
+    "version": "0.0.4",
+    "news": {
+      "0.0.4": {
+        "en": "Corrected issues for repo checker",
+        "de": "Korrigierte Probleme für Repo Checker",
+        "ru": "Исправленные вопросы для repo checker",
+        "pt": "Problemas corrigidos para repo checker",
+        "nl": "Gecorrigeerde problemen voor repo-checker",
+        "fr": "Problèmes corrigés pour le vérificateur de repo",
+        "it": "Problemi corretti per repo checker",
+        "es": "Problemas corregidos para el checker de repo",
+        "pl": "Poprawione kwestie dla kontrolera repo",
+        "uk": "Виправлені питання для перевірки репо",
+        "zh-cn": "已更正的 repo 检查器问题"
+      },
+      "0.0.3": {
+        "en": "Initial release",
+        "de": "Erstausstrahlung",
+        "ru": "Первоначальное освобождение",
+        "pt": "Lançamento inicial",
+        "nl": "Eerste vrijgave",
+        "fr": "Libération initiale",
+        "it": "Rilascio iniziale",
+        "es": "Liberación inicial",
+        "pl": "Początkowe wydanie",
+        "uk": "Початковий реліз",
+        "zh-cn": "初步释放"
+      }
+    },
+    "titleLang": {
+      "en": "Read GPS data",
+      "de": "Lese GPS-Daten",
+      "ru": "Чтение данных GPS",
+      "pt": "Ler dados de GPS",
+      "nl": "Lees GPS-gegevens",
+      "fr": "Lire les données GPS",
+      "it": "Leggi i dati GPS",
+      "es": "Leer datos GPS",
+      "pl": "Odczyt danych GPS",
+      "uk": "Читання даних GPS",
+      "zh-cn": "读取GPS数据"
+    },
+    "desc": {
+      "en": "Read GPS data from serial or USB GPS mouse",
+      "de": "Lese GPS-Daten von einer seriellen oder USB-GPS-Maus",
+      "ru": "Чтение данных GPS с последовательной или USB GPS мыши",
+      "pt": "Leia dados de GPS de um mouse GPS serial ou USB",
+      "nl": "Lees GPS-gegevens van een seriële of USB GPS-muis",
+      "fr": "Lire les données GPS à partir d'une souris GPS série ou USB",
+      "it": "Leggi i dati GPS da un mouse GPS seriale o USB",
+      "es": "Leer datos GPS de un ratón GPS serie o USB",
+      "pl": "Odczyt danych GPS z myszy GPS szeregowej lub, USB",
+      "uk": "Читання даних GPS з послідовної або USB GPS миші",
+      "zh-cn": "从串行或USB GPS鼠标读取GPS数据"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "loglevel": "info",
+    "readme": "https://github.com/ioBroker/ioBroker.serial-gps/blob/master/README.md",
+    "icon": "serial-gps.svg",
+    "dataSource": "push",
+    "tier": 3,
+    "nogit": true,
+    "adminUI": {
+      "config": "json"
+    },
+    "keywords": [
+      "gps"
+    ],
+    "connectionType": "local",
+    "enabled": true,
+    "compact": true,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.serial-gps/master/admin/serial-gps.svg",
+    "type": "utility",
+    "messagebox": true,
+    "stopBeforeUpdate": true,
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.19"
+      }
+    ],
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "globalDependencies": [
+      {
+        "admin": ">=7.6.17"
+      }
+    ]
+  },
+  "native": {
+    "serialPort": "/dev/ttyUSB0",
+    "baudRate": 4800
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "If connected to cloud",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "GPS",
+          "de": "GPS"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.latitude",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Latitude",
+          "de": "Breitengrad",
+          "ru": "Широта",
+          "pt": "Latitude",
+          "nl": "Breedtegraad",
+          "fr": "Latitude",
+          "it": "Latitudine",
+          "es": "Latitud",
+          "pl": "Szerokość geograficzna",
+          "uk": "Широта",
+          "zh-cn": "纬度"
         },
-        "titleLang": {
-            "en": "Read GPS data",
-            "de": "Lese GPS-Daten",
-            "ru": "Чтение данных GPS",
-            "pt": "Ler dados de GPS",
-            "nl": "Lees GPS-gegevens",
-            "fr": "Lire les données GPS",
-            "it": "Leggi i dati GPS",
-            "es": "Leer datos GPS",
-            "pl": "Odczyt danych GPS",
-            "uk": "Читання даних GPS",
-            "zh-cn": "读取GPS数据"
+        "type": "number",
+        "role": "value.gps.latitude",
+        "unit": "°",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.longitude",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Longitude",
+          "de": "Längengrad",
+          "ru": "Долгота",
+          "pt": "Longitude",
+          "nl": "Lengtegraad",
+          "fr": "Longitude",
+          "it": "Longitudine",
+          "es": "Longitud",
+          "pl": "Długość geograficzna",
+          "uk": "Довгота",
+          "zh-cn": "经度"
+        },
+        "type": "number",
+        "role": "value.gps.longitude",
+        "unit": "°",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.position",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Position (lon;lat)",
+          "de": "Position (lon;lat)",
+          "ru": "Позиция (долгота; широта)",
+          "pt": "Posição (lon;lat)",
+          "nl": "Positie (lon;lat)",
+          "fr": "Position (lon;lat)",
+          "it": "Posizione (lon;lat)",
+          "es": "Posición (lon;lat)",
+          "pl": "Pozycja (lon;lat)",
+          "uk": "Позиція (довгота; широта)",
+          "zh-cn": "位置（经度；纬度）"
+        },
+        "type": "string",
+        "role": "value.gps",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.latlon",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Position (lat;lon)",
+          "de": "Position (lat;lon)",
+          "ru": "Позиция (широта;долгота)",
+          "pt": "Posição (lat;lon)",
+          "nl": "Positie (lat;lon)",
+          "fr": "Position (lat;lon)",
+          "it": "Posizione (lat;lon)",
+          "es": "Posición (lat;lon)",
+          "pl": "Pozycja (lat;lon)",
+          "uk": "Позиція (широта;довгота)",
+          "zh-cn": "位置（纬度；经度）"
+        },
+        "type": "string",
+        "role": "value",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.speed_kmh",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Speed (km/h)",
+          "de": "Geschwindigkeit (km/h)",
+          "ru": "Скорость (км/ч)",
+          "pt": "Velocidade (km/h)",
+          "nl": "Snelheid (km/u)",
+          "fr": "Vitesse (km/h)",
+          "it": "Velocità (km/h)",
+          "es": "Velocidad (km/h)",
+          "pl": "Prędkość (km/h)",
+          "uk": "Швидкість (км/год)",
+          "zh-cn": "速度（公里/小时）"
+        },
+        "type": "number",
+        "role": "value.speed",
+        "unit": "km/h",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.speed_knots",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Speed (knots)",
+          "de": "Geschwindigkeit (kn)",
+          "ru": "Скорость (узлы)",
+          "pt": "Velocidade (nós)",
+          "nl": "Snelheid (knopen)",
+          "fr": "Vitesse (nœuds)",
+          "it": "Velocità (nodi)",
+          "es": "Velocidad (nudos)",
+          "pl": "Prędkość (węzły)",
+          "uk": "Швидкість (вузли)",
+          "zh-cn": "速度（节）"
+        },
+        "type": "number",
+        "role": "value.speed",
+        "unit": "kn",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.course",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Course",
+          "de": "Kurs",
+          "ru": "Курс",
+          "pt": "Curso",
+          "nl": "Koers",
+          "fr": "Cap",
+          "it": "Rotta",
+          "es": "Curso",
+          "pl": "Kurs",
+          "uk": "Курс",
+          "zh-cn": "课程"
+        },
+        "type": "number",
+        "role": "value.direction",
+        "unit": "°",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.altitude",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Altitude",
+          "de": "Höhe",
+          "ru": "Высота",
+          "pt": "Altitude",
+          "nl": "Hoogte",
+          "fr": "Altitude",
+          "it": "Altitudine",
+          "es": "Altitud",
+          "pl": "Wysokość",
+          "uk": "Висота",
+          "zh-cn": "海拔"
+        },
+        "type": "number",
+        "role": "value.gps.altitude",
+        "unit": "m",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.satellites",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Satellites",
+          "de": "Satelliten",
+          "ru": "Спутники",
+          "pt": "Satélites",
+          "nl": "Satellieten",
+          "fr": "Satellites",
+          "it": "Satelliti",
+          "es": "Satélites",
+          "pl": "Satelity",
+          "uk": "Супутники",
+          "zh-cn": "卫星"
+        },
+        "type": "number",
+        "role": "value",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.hdop",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "HDOP",
+          "de": "HDOP",
+          "ru": "HDOP",
+          "pt": "HDOP",
+          "nl": "HDOP",
+          "fr": "HDOP",
+          "it": "HDOP",
+          "es": "HDOP",
+          "pl": "HDOP",
+          "uk": "HDOP",
+          "zh-cn": "HDOP"
         },
         "desc": {
-            "en": "Read GPS data from serial or USB GPS mouse",
-            "de": "Lese GPS-Daten von einer seriellen oder USB-GPS-Maus",
-            "ru": "Чтение данных GPS с последовательной или USB GPS мыши",
-            "pt": "Leia dados de GPS de um mouse GPS serial ou USB",
-            "nl": "Lees GPS-gegevens van een seriële of USB GPS-muis",
-            "fr": "Lire les données GPS à partir d'une souris GPS série ou USB",
-            "it": "Leggi i dati GPS da un mouse GPS seriale o USB",
-            "es": "Leer datos GPS de un ratón GPS serie o USB",
-            "pl": "Odczyt danych GPS z myszy GPS szeregowej lub, USB",
-            "uk": "Читання даних GPS з послідовної або USB GPS миші",
-            "zh-cn": "从串行或USB GPS鼠标读取GPS数据"
+          "en": "Horizontal Dilution of Precision",
+          "de": "Horizontale Genauigkeitsverringerung",
+          "ru": "Горизонтальное уменьшение точности",
+          "pt": "Diluição Horizontal de Precisão",
+          "nl": "Horizontale verdunning van precisie",
+          "fr": "Dilution horizontale de précision",
+          "it": "Diluzione orizzontale della precisione",
+          "es": "Disminución horizontal de la precisión",
+          "pl": "Poziome rozcieńczenie precyzji",
+          "uk": "Горизонтальне зменшення точності",
+          "zh-cn": "水平精度降低"
         },
-        "authors": ["bluefox <dogafox@gmail.com>"],
-        "platform": "Javascript/Node.js",
-        "mode": "daemon",
-        "loglevel": "info",
-        "readme": "https://github.com/ioBroker/ioBroker.serial-gps/blob/master/README.md",
-        "icon": "serial-gps.svg",
-        "dataSource": "push",
-        "tier": 3,
-        "nogit": true,
-        "adminUI": {
-            "config": "json"
-        },
-        "keywords": ["gps"],
-        "connectionType": "local",
-        "enabled": true,
-        "compact": true,
-        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.serial-gps/master/admin/serial-gps.svg",
-        "type": "utility",
-        "messagebox": true,
-        "stopBeforeUpdate": true,
-        "dependencies": [
-            {
-                "js-controller": ">=6.0.19"
-            }
-        ],
-        "licenseInformation": {
-            "type": "free",
-            "license": "MIT"
-        },
-        "globalDependencies": [
-            {
-                "admin": ">=7.6.17"
-            }
-        ]
+        "type": "number",
+        "role": "value",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
     },
-    "native": {
-        "serialPort": "/dev/ttyUSB0",
-        "baudRate": 4800
+    {
+      "_id": "gps.fix_quality",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Fix quality",
+          "de": "Fix-Qualität",
+          "ru": "Качество фиксации",
+          "pt": "Qualidade de fixação",
+          "nl": "Fix-kwaliteit",
+          "fr": "Qualité de la fixation",
+          "it": "Qualità di fix",
+          "es": "Calidad de fijación",
+          "pl": "Jakość fiksacji",
+          "uk": "Якість фіксації",
+          "zh-cn": "修复质量"
+        },
+        "states": {
+          "0": "invalid",
+          "1": "GPS fix",
+          "2": "DGPS fix"
+        },
+        "type": "number",
+        "role": "info",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
     },
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": "Information"
-            },
-            "native": {}
+    {
+      "_id": "gps.timestamp",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Timestamp (epoch ms)",
+          "de": "Zeitstempel (Epoch ms)",
+          "ru": "Метка времени (эпоха мс)",
+          "pt": "Carimbo de data/hora (época ms)",
+          "nl": "Tijdstempel (epoch ms)",
+          "fr": "Horodatage (époque ms)",
+          "it": "Timestamp (epoca ms)",
+          "es": "Marca de tiempo (época ms)",
+          "pl": "Znacznik czasu (epoka ms)",
+          "uk": "Позначка часу (епоха мс)",
+          "zh-cn": "时间戳（纪元毫秒）"
         },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "role": "indicator.connected",
-                "name": "If connected to cloud",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
+        "type": "number",
+        "role": "value.time",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.date",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Date (ddmmyy)",
+          "de": "Datum (ddmmyy)",
+          "ru": "Дата (ддммгг)",
+          "pt": "Data (ddmmyy)",
+          "nl": "Datum (ddmmyy)",
+          "fr": "Date (ddmmyy)",
+          "it": "Data (ddmmyy)",
+          "es": "Fecha (ddmmyy)",
+          "pl": "Data (ddmmyy)",
+          "uk": "Дата (ддммрр)",
+          "zh-cn": "日期（ddmmyy）"
         },
-        {
-            "_id": "gps",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "GPS",
-                    "de": "GPS"
-                }
-            },
-            "native": {}
+        "type": "string",
+        "role": "value",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.fix_mode",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Fix mode",
+          "de": "Fix-Modus",
+          "ru": "Режим фиксации",
+          "pt": "Modo de fixação",
+          "nl": "Fix-modus",
+          "fr": "Mode de fixation",
+          "it": "Modalità di fix",
+          "es": "Modo de fijación",
+          "pl": "Tryb fiksacji",
+          "uk": "Режим фіксації",
+          "zh-cn": "修复模式"
         },
-        {
-            "_id": "gps.latitude",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Latitude",
-                    "de": "Breitengrad",
-                    "ru": "Широта",
-                    "pt": "Latitude",
-                    "nl": "Breedtegraad",
-                    "fr": "Latitude",
-                    "it": "Latitudine",
-                    "es": "Latitud",
-                    "pl": "Szerokość geograficzna",
-                    "uk": "Широта",
-                    "zh-cn": "纬度"
-                },
-                "type": "number",
-                "role": "value.gps.latitude",
-                "unit": "°",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
+        "desc": {
+          "en": "2D or 3D fix mode",
+          "de": "2D- oder 3D-Fixmodus",
+          "ru": "2D или 3D режим фиксации",
+          "pt": "Modo de fixação 2D ou 3D",
+          "nl": "2D- of 3D-fixatiemodus",
+          "fr": "Mode de fixation 2D ou 3D",
+          "it": "Modalità di fix 2D o 3D",
+          "es": "Modo de fijación 2D o 3D",
+          "pl": "Tryb fiksacji 2D lub 3D",
+          "uk": "2D або 3D режим фіксації",
+          "zh-cn": "2D或3D修复模式"
         },
-        {
-            "_id": "gps.longitude",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Longitude",
-                    "de": "Längengrad",
-                    "ru": "Долгота",
-                    "pt": "Longitude",
-                    "nl": "Lengtegraad",
-                    "fr": "Longitude",
-                    "it": "Longitudine",
-                    "es": "Longitud",
-                    "pl": "Długość geograficzna",
-                    "uk": "Довгота",
-                    "zh-cn": "经度"
-                },
-                "type": "number",
-                "role": "value.gps.longitude",
-                "unit": "°",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
+        "type": "string",
+        "role": "info",
+        "read": true,
+        "write": false,
+        "states": {
+          "2": "2D",
+          "3": "3D"
         },
-        {
-            "_id": "gps.position",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Position (lon;lat)",
-                    "de": "Position (lon;lat)",
-                    "ru": "Позиция (долгота; широта)",
-                    "pt": "Posição (lon;lat)",
-                    "nl": "Positie (lon;lat)",
-                    "fr": "Position (lon;lat)",
-                    "it": "Posizione (lon;lat)",
-                    "es": "Posición (lon;lat)",
-                    "pl": "Pozycja (lon;lat)",
-                    "uk": "Позиція (довгота; широта)",
-                    "zh-cn": "位置（经度；纬度）"
-                },
-                "type": "string",
-                "role": "value.gps",
-                "read": true,
-                "write": false
-            },
-            "native": {}
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.pdop",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "PDOP",
+          "de": "PDOP",
+          "ru": "PDOP",
+          "pt": "PDOP",
+          "nl": "PDOP",
+          "fr": "PDOP",
+          "it": "PDOP",
+          "es": "PDOP",
+          "pl": "PDOP",
+          "uk": "PDOP",
+          "zh-cn": "PDOP"
         },
-        {
-            "_id": "gps.latlon",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Position (lat;lon)",
-                    "de": "Position (lat;lon)",
-                    "ru": "Позиция (широта;долгота)",
-                    "pt": "Posição (lat;lon)",
-                    "nl": "Positie (lat;lon)",
-                    "fr": "Position (lat;lon)",
-                    "it": "Posizione (lat;lon)",
-                    "es": "Posición (lat;lon)",
-                    "pl": "Pozycja (lat;lon)",
-                    "uk": "Позиція (широта;довгота)",
-                    "zh-cn": "位置（纬度；经度）"
-                },
-                "type": "string",
-                "role": "value",
-                "read": true,
-                "write": false
-            },
-            "native": {}
+        "desc": {
+          "en": "Position Dilution of Precision",
+          "de": "Positionsgenauigkeitsverringerung",
+          "ru": "Уменьшение точности позиции",
+          "pt": "Diluição de Posição de Precisão",
+          "nl": "Positie verdunning van precisie",
+          "fr": "Dilution de position de précision",
+          "it": "Diluzione della posizione della precisione",
+          "es": "Disminución de la precisión de la posición",
+          "pl": "Rozcieńczenie pozycji precyzji",
+          "uk": "Зменшення точності позиції",
+          "zh-cn": "位置精度降低"
         },
-        {
-            "_id": "gps.speed_kmh",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Speed (km/h)",
-                    "de": "Geschwindigkeit (km/h)",
-                    "ru": "Скорость (км/ч)",
-                    "pt": "Velocidade (km/h)",
-                    "nl": "Snelheid (km/u)",
-                    "fr": "Vitesse (km/h)",
-                    "it": "Velocità (km/h)",
-                    "es": "Velocidad (km/h)",
-                    "pl": "Prędkość (km/h)",
-                    "uk": "Швидкість (км/год)",
-                    "zh-cn": "速度（公里/小时）"
-                },
-                "type": "number",
-                "role": "value.speed",
-                "unit": "km/h",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
+        "type": "number",
+        "role": "value",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "gps.vdop",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "VDOP",
+          "de": "VDOP",
+          "ru": "VDOP",
+          "pt": "VDOP",
+          "nl": "VDOP",
+          "fr": "VDOP",
+          "it": "VDOP",
+          "es": "VDOP",
+          "pl": "VDOP",
+          "uk": "VDOP",
+          "zh-cn": "VDOP"
         },
-        {
-            "_id": "gps.speed_knots",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Speed (knots)",
-                    "de": "Geschwindigkeit (kn)",
-                    "ru": "Скорость (узлы)",
-                    "pt": "Velocidade (nós)",
-                    "nl": "Snelheid (knopen)",
-                    "fr": "Vitesse (nœuds)",
-                    "it": "Velocità (nodi)",
-                    "es": "Velocidad (nudos)",
-                    "pl": "Prędkość (węzły)",
-                    "uk": "Швидкість (вузли)",
-                    "zh-cn": "速度（节）"
-                },
-                "type": "number",
-                "role": "value.speed",
-                "unit": "kn",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
+        "desc": {
+          "en": "Vertical Dilution of Precision",
+          "de": "Vertikale Genauigkeitsverringerung",
+          "ru": "Вертикальное уменьшение точности",
+          "pt": "Diluição Vertical de Precisão",
+          "nl": "Verticale verdunning van precisie",
+          "fr": "Dilution verticale de précision",
+          "it": "Diluzione verticale della precisione",
+          "es": "Disminución vertical de la precisión",
+          "pl": "Pionowe rozcieńczenie precyzji",
+          "uk": "Вертикальне зменшення точності",
+          "zh-cn": "垂直精度降低"
         },
-        {
-            "_id": "gps.course",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Course",
-                    "de": "Kurs",
-                    "ru": "Курс",
-                    "pt": "Curso",
-                    "nl": "Koers",
-                    "fr": "Cap",
-                    "it": "Rotta",
-                    "es": "Curso",
-                    "pl": "Kurs",
-                    "uk": "Курс",
-                    "zh-cn": "课程"
-                },
-                "type": "number",
-                "role": "value.direction",
-                "unit": "°",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.altitude",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Altitude",
-                    "de": "Höhe",
-                    "ru": "Высота",
-                    "pt": "Altitude",
-                    "nl": "Hoogte",
-                    "fr": "Altitude",
-                    "it": "Altitudine",
-                    "es": "Altitud",
-                    "pl": "Wysokość",
-                    "uk": "Висота",
-                    "zh-cn": "海拔"
-                },
-                "type": "number",
-                "role": "value.gps.altitude",
-                "unit": "m",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.satellites",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Satellites",
-                    "de": "Satelliten",
-                    "ru": "Спутники",
-                    "pt": "Satélites",
-                    "nl": "Satellieten",
-                    "fr": "Satellites",
-                    "it": "Satelliti",
-                    "es": "Satélites",
-                    "pl": "Satelity",
-                    "uk": "Супутники",
-                    "zh-cn": "卫星"
-                },
-                "type": "number",
-                "role": "value",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.hdop",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "HDOP",
-                    "de": "HDOP",
-                    "ru": "HDOP",
-                    "pt": "HDOP",
-                    "nl": "HDOP",
-                    "fr": "HDOP",
-                    "it": "HDOP",
-                    "es": "HDOP",
-                    "pl": "HDOP",
-                    "uk": "HDOP",
-                    "zh-cn": "HDOP"
-                },
-                "desc": {
-                    "en": "Horizontal Dilution of Precision",
-                    "de": "Horizontale Genauigkeitsverringerung",
-                    "ru": "Горизонтальное уменьшение точности",
-                    "pt": "Diluição Horizontal de Precisão",
-                    "nl": "Horizontale verdunning van precisie",
-                    "fr": "Dilution horizontale de précision",
-                    "it": "Diluzione orizzontale della precisione",
-                    "es": "Disminución horizontal de la precisión",
-                    "pl": "Poziome rozcieńczenie precyzji",
-                    "uk": "Горизонтальне зменшення точності",
-                    "zh-cn": "水平精度降低"
-                },
-                "type": "number",
-                "role": "value",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.fix_quality",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Fix quality",
-                    "de": "Fix-Qualität",
-                    "ru": "Качество фиксации",
-                    "pt": "Qualidade de fixação",
-                    "nl": "Fix-kwaliteit",
-                    "fr": "Qualité de la fixation",
-                    "it": "Qualità di fix",
-                    "es": "Calidad de fijación",
-                    "pl": "Jakość fiksacji",
-                    "uk": "Якість фіксації",
-                    "zh-cn": "修复质量"
-                },
-                "states": {
-                    "0": "invalid",
-                    "1": "GPS fix",
-                    "2": "DGPS fix"
-                },
-                "type": "number",
-                "role": "info",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.timestamp",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Timestamp (epoch ms)",
-                    "de": "Zeitstempel (Epoch ms)",
-                    "ru": "Метка времени (эпоха мс)",
-                    "pt": "Carimbo de data/hora (época ms)",
-                    "nl": "Tijdstempel (epoch ms)",
-                    "fr": "Horodatage (époque ms)",
-                    "it": "Timestamp (epoca ms)",
-                    "es": "Marca de tiempo (época ms)",
-                    "pl": "Znacznik czasu (epoka ms)",
-                    "uk": "Позначка часу (епоха мс)",
-                    "zh-cn": "时间戳（纪元毫秒）"
-                },
-                "type": "number",
-                "role": "value.time",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.date",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Date (ddmmyy)",
-                    "de": "Datum (ddmmyy)",
-                    "ru": "Дата (ддммгг)",
-                    "pt": "Data (ddmmyy)",
-                    "nl": "Datum (ddmmyy)",
-                    "fr": "Date (ddmmyy)",
-                    "it": "Data (ddmmyy)",
-                    "es": "Fecha (ddmmyy)",
-                    "pl": "Data (ddmmyy)",
-                    "uk": "Дата (ддммрр)",
-                    "zh-cn": "日期（ddmmyy）"
-                },
-                "type": "string",
-                "role": "value",
-                "read": true,
-                "write": false,
-                "def": ""
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.fix_mode",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Fix mode",
-                    "de": "Fix-Modus",
-                    "ru": "Режим фиксации",
-                    "pt": "Modo de fixação",
-                    "nl": "Fix-modus",
-                    "fr": "Mode de fixation",
-                    "it": "Modalità di fix",
-                    "es": "Modo de fijación",
-                    "pl": "Tryb fiksacji",
-                    "uk": "Режим фіксації",
-                    "zh-cn": "修复模式"
-                },
-                "desc": {
-                    "en": "2D or 3D fix mode",
-                    "de": "2D- oder 3D-Fixmodus",
-                    "ru": "2D или 3D режим фиксации",
-                    "pt": "Modo de fixação 2D ou 3D",
-                    "nl": "2D- of 3D-fixatiemodus",
-                    "fr": "Mode de fixation 2D ou 3D",
-                    "it": "Modalità di fix 2D o 3D",
-                    "es": "Modo de fijación 2D o 3D",
-                    "pl": "Tryb fiksacji 2D lub 3D",
-                    "uk": "2D або 3D режим фіксації",
-                    "zh-cn": "2D或3D修复模式"
-                },
-                "type": "string",
-                "role": "info",
-                "read": true,
-                "write": false,
-                "states": {
-                    "2": "2D",
-                    "3": "3D"
-                },
-                "def": ""
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.pdop",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "PDOP",
-                    "de": "PDOP",
-                    "ru": "PDOP",
-                    "pt": "PDOP",
-                    "nl": "PDOP",
-                    "fr": "PDOP",
-                    "it": "PDOP",
-                    "es": "PDOP",
-                    "pl": "PDOP",
-                    "uk": "PDOP",
-                    "zh-cn": "PDOP"
-                },
-                "desc": {
-                    "en": "Position Dilution of Precision",
-                    "de": "Positionsgenauigkeitsverringerung",
-                    "ru": "Уменьшение точности позиции",
-                    "pt": "Diluição de Posição de Precisão",
-                    "nl": "Positie verdunning van precisie",
-                    "fr": "Dilution de position de précision",
-                    "it": "Diluzione della posizione della precisione",
-                    "es": "Disminución de la precisión de la posición",
-                    "pl": "Rozcieńczenie pozycji precyzji",
-                    "uk": "Зменшення точності позиції",
-                    "zh-cn": "位置精度降低"
-                },
-                "type": "number",
-                "role": "value",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        },
-        {
-            "_id": "gps.vdop",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "VDOP",
-                    "de": "VDOP",
-                    "ru": "VDOP",
-                    "pt": "VDOP",
-                    "nl": "VDOP",
-                    "fr": "VDOP",
-                    "it": "VDOP",
-                    "es": "VDOP",
-                    "pl": "VDOP",
-                    "uk": "VDOP",
-                    "zh-cn": "VDOP"
-                },
-                "desc": {
-                    "en": "Vertical Dilution of Precision",
-                    "de": "Vertikale Genauigkeitsverringerung",
-                    "ru": "Вертикальное уменьшение точности",
-                    "pt": "Diluição Vertical de Precisão",
-                    "nl": "Verticale verdunning van precisie",
-                    "fr": "Dilution verticale de précision",
-                    "it": "Diluzione verticale della precisione",
-                    "es": "Disminución vertical de la precisión",
-                    "pl": "Pionowe rozcieńczenie precyzji",
-                    "uk": "Вертикальне зменшення точності",
-                    "zh-cn": "垂直精度降低"
-                },
-                "type": "number",
-                "role": "value",
-                "read": true,
-                "write": false,
-                "def": 0
-            },
-            "native": {}
-        }
-    ]
+        "type": "number",
+        "role": "value",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    }
+  ]
 }
