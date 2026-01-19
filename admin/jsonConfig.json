@@ -4,7 +4,6 @@
     "items": {
         "serialPort": {
             "type": "selectSendTo",
-            "name": "serialPort",
             "label": "Serial port",
             "command": "list",
             "default": "",
@@ -15,7 +14,6 @@
         "baudRate": {
             "newLine": true,
             "type": "select",
-            "name": "baudRate",
             "label": "Baud rate",
             "noTranslation": true,
             "options": [
@@ -69,7 +67,7 @@
             "showProcess": true
         },
         "_test": {
-            "newLine": "true",
+            "newLine": true,
             "type": "sendTo",
             "command": "test",
             "label": "Test",
