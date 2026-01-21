@@ -58,6 +58,7 @@ describe.only('serial-gps: Test parser', () => {
             // enable adapter
             config.common.enabled = true;
             config.common.loglevel = 'debug';
+            config.native.test = true;
 
             await setup.setAdapterConfig(config.common, config.native);
 

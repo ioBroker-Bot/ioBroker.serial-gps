@@ -573,8 +573,10 @@ export class SerialGpsAdapter extends Adapter {
 
     async main(): Promise<void> {
         await this.setStateAsync('info.connection', false, true);
-        // Open UDP port 50547 for test purposes
-        this.openUdpServer(50547);
+        if (this.config.test) {
+            // Open UDP port 50547 for test purposes
+            this.openUdpServer(50547);
+        }
 
         this.openPort().catch((err: Error) => this.log.error(`Error opening serial port: ${err.message || err}`));
     }
