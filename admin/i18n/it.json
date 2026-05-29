@@ -2,6 +2,9 @@
   "Baud rate": "velocità in baud",
   "Cannot detect baud rate": "Impossibile rilevare la velocità in baud",
   "Detect baud rate": "Rileva la velocità in baud",
+  "Select device by": "Seleziona il dispositivo tramite",
   "Serial port": "Porta seriale",
-  "Test": "Test"
+  "Test": "Test",
+  "USB device": "Dispositivo USB",
+  "USB device ID": "ID dispositivo USB"
 }

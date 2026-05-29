@@ -2,6 +2,9 @@
   "Baud rate": "débit en bauds",
   "Cannot detect baud rate": "Débit en bauds indétectable",
   "Detect baud rate": "Détection du débit binaire",
+  "Select device by": "Sélectionner l'appareil par",
   "Serial port": "port série",
-  "Test": "Test"
+  "Test": "Test",
+  "USB device": "périphérique USB",
+  "USB device ID": "ID du périphérique USB"
 }

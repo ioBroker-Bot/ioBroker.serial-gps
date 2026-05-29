@@ -2,6 +2,9 @@
   "Baud rate": "Baudrate",
   "Cannot detect baud rate": "Baudrate konnte nicht erkannt werden",
   "Detect baud rate": "Baudrate erkennen",
+  "Select device by": "Gerät auswählen nach",
   "Serial port": "Serielle Schnittstelle",
-  "Test": "Prüfen"
+  "Test": "Prüfen",
+  "USB device": "USB-Gerät",
+  "USB device ID": "USB-Geräte-ID"
 }

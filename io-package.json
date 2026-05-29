@@ -96,7 +96,9 @@
     ]
   },
   "native": {
+    "selectBy": "port",
     "serialPort": "/dev/ttyUSB0",
+    "deviceId": "",
     "baudRate": 4800
   },
   "objects": [],

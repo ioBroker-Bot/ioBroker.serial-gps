@@ -2,6 +2,9 @@
     "Baud rate": "Baud rate",
     "Cannot detect baud rate": "Cannot detect baud rate",
     "Detect baud rate": "Detect baud rate",
+    "Select device by": "Select device by",
     "Serial port": "Serial port",
-    "Test": "Test"
+    "Test": "Test",
+    "USB device": "USB device",
+    "USB device ID": "USB device ID"
 }

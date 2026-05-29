@@ -2,6 +2,9 @@
   "Baud rate": "Baudsnelheid",
   "Cannot detect baud rate": "Baudsnelheid kan niet worden gedetecteerd",
   "Detect baud rate": "Baudsnelheid detecteren",
+  "Select device by": "Selecteer apparaat door",
   "Serial port": "Seriële poort",
-  "Test": "Test"
+  "Test": "Test",
+  "USB device": "USB-apparaat",
+  "USB device ID": "USB-apparaat-ID"
 }

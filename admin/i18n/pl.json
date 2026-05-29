@@ -2,6 +2,9 @@
   "Baud rate": "Szybkość transmisji",
   "Cannot detect baud rate": "Nie można wykryć szybkości transmisji",
   "Detect baud rate": "Wykryj szybkość transmisji",
+  "Select device by": "Wybierz urządzenie według",
   "Serial port": "Port szeregowy",
-  "Test": "Test"
+  "Test": "Test",
+  "USB device": "Urządzenie USB",
+  "USB device ID": "Identyfikator urządzenia USB"
 }

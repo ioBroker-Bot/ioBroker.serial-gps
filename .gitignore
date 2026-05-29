@@ -14,3 +14,4 @@ nbproject
 
 #ignore .commitinfo created by ioBroker release script
 .commitinfo
+/*.tgz

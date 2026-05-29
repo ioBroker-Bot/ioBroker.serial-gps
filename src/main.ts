@@ -85,6 +85,8 @@ function parseNmeaDateTime(timeStr?: string, dateStr?: string): number | null {
 export class SerialGpsAdapter extends Adapter {
     declare config: SerialGpsAdapterConfig;
     private serialPort?: SerialPort;
+    /** Port path the live connection currently uses (resolved from config, may differ from config.serialPort in device mode) */
+    private currentPath = '';
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private lastStates = new Map<string, { val: any; ts: number }>();
     private recvBuffer = '';
@@ -125,6 +127,38 @@ export class SerialGpsAdapter extends Adapter {
                                     );
                                 } catch (e) {
                                     this.log.error(`Cannot list ports: ${e}`);
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        [{ label: 'Not available', value: '' }],
+                                        obj.callback,
+                                    );
+                                }
+                            }
+
+                            break;
+
+                        case 'listDevices':
+                            if (obj.callback) {
+                                try {
+                                    // read all found serial ports and expose them by their stable USB ID
+                                    const ports = await SerialPort.list();
+                                    const devices = ports
+                                        // only USB devices report a vendor ID; plain serial ports cannot be addressed this way
+                                        .filter(item => item.vendorId)
+                                        .map(item => ({
+                                            label: `${item.manufacturer || 'Unknown'} (VID:${item.vendorId} PID:${item.productId || '-'}${item.serialNumber ? ` SN:${item.serialNumber}` : ''}) [${item.path}]`,
+                                            value: `${item.vendorId}:${item.productId || ''}:${item.serialNumber || ''}`,
+                                        }));
+                                    this.log.info(`List of devices: ${JSON.stringify(devices)}`);
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        devices.length ? devices : [{ label: 'No USB devices found', value: '' }],
+                                        obj.callback,
+                                    );
+                                } catch (e) {
+                                    this.log.error(`Cannot list devices: ${e}`);
                                     this.sendTo(
                                         obj.from,
                                         obj.command,
@@ -194,7 +228,7 @@ export class SerialGpsAdapter extends Adapter {
 
     private async test(port: string, baudRate: string | number): Promise<boolean> {
         let portClosed = false;
-        if (this.config.serialPort === port) {
+        if (this.currentPath === port) {
             portClosed = true;
             await this.closePort();
         }
@@ -264,7 +298,7 @@ export class SerialGpsAdapter extends Adapter {
 
     private async detectBaudRate(port: string): Promise<number> {
         let portClosed = false;
-        if (this.config.serialPort === port) {
+        if (this.currentPath === port) {
             portClosed = true;
             await this.closePort();
         }
@@ -283,6 +317,36 @@ export class SerialGpsAdapter extends Adapter {
             await this.openPort();
         }
         return 0;
+    }
+
+    /**
+     * Resolve the configured selection into an actual serial port path.
+     * In 'device' mode the stable USB ID (vendorId:productId:serialNumber) is looked up in the
+     * currently attached ports, so the device keeps working even if the OS assigns a different path.
+     */
+    private async resolvePort(): Promise<string> {
+        if (this.config.selectBy === 'device' && this.config.deviceId) {
+            const [vendorId, productId, serialNumber] = this.config.deviceId.split(':');
+            try {
+                const ports = await SerialPort.list();
+                const match = ports.find(
+                    item =>
+                        (item.vendorId || '').toLowerCase() === (vendorId || '').toLowerCase() &&
+                        (item.productId || '').toLowerCase() === (productId || '').toLowerCase() &&
+                        // serialNumber is not reported on every system; only match it when we have one
+                        (!serialNumber || (item.serialNumber || '') === serialNumber),
+                );
+                if (match) {
+                    this.log.info(`Resolved device "${this.config.deviceId}" to port ${match.path}`);
+                    return match.path;
+                }
+                this.log.warn(`No connected serial port matches device "${this.config.deviceId}"`);
+            } catch (e) {
+                this.log.error(`Cannot list serial ports: ${(e as Error).message || e}`);
+            }
+            return '';
+        }
+        return this.config.serialPort;
     }
 
     private closePort(): Promise<void> {
@@ -462,23 +526,40 @@ export class SerialGpsAdapter extends Adapter {
         }
     }
 
+    private scheduleReconnect(): void {
+        this.reconnectTimer ||= setTimeout(() => {
+            this.reconnectTimer = null;
+            this.log.info(`Reconnecting to serial port: ${this.currentPath || this.config.deviceId}`);
+            this.openPort().catch((err: Error) => this.log.warn(`Error opening serial port: ${err.message || err}`));
+        }, 5000);
+    }
+
     private async openPort(): Promise<void> {
         // Close existing port if open
         await this.closePort();
 
+        // Resolve the selection (fixed port or stable USB device ID) into an actual port path
+        this.currentPath = await this.resolvePort();
+        if (!this.currentPath) {
+            await this.setStateIfChangedAsync('info.connection', false);
+            // device not attached (yet) -> retry later, it may appear after a reconnect
+            this.scheduleReconnect();
+            return;
+        }
+
         try {
             this.serialPort = new SerialPort({
-                path: this.config.serialPort,
+                path: this.currentPath,
                 baudRate: parseInt(this.config.baudRate as string, 10) || 9600,
                 autoOpen: false,
             });
 
             this.serialPort.open(err => {
                 if (err) {
-                    this.log.error(`Failed to open serial port ${this.config.serialPort}: ${err.message || err}`);
+                    this.log.error(`Failed to open serial port ${this.currentPath}: ${err.message || err}`);
                     return;
                 }
-                this.log.info(`Serial port opened: ${this.config.serialPort} @ ${this.config.baudRate}`);
+                this.log.info(`Serial port opened: ${this.currentPath} @ ${this.config.baudRate}`);
             });
 
             this.serialPort.on('data', async (data: Buffer): Promise<void> => {
@@ -490,39 +571,21 @@ export class SerialGpsAdapter extends Adapter {
             });
 
             this.serialPort.on('error', async (err: Error): Promise<void> => {
-                this.log.error(`Serial port error (${this.config.serialPort}): ${err.message || err}`);
+                this.log.error(`Serial port error (${this.currentPath}): ${err.message || err}`);
                 await this.setStateIfChangedAsync('info.connection', false);
-
-                this.reconnectTimer ||= setTimeout(() => {
-                    this.reconnectTimer = null;
-                    this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
-                    this.openPort().catch(error => this.log.warn(`Error opening serial port: ${error.message || err}`));
-                }, 5000);
+                this.scheduleReconnect();
             });
 
             this.serialPort.on('close', async (): Promise<void> => {
-                this.log.info(`Serial port closed: ${this.config.serialPort}`);
+                this.log.info(`Serial port closed: ${this.currentPath}`);
                 await this.setStateIfChangedAsync('info.connection', false);
-
-                this.reconnectTimer ||= setTimeout(() => {
-                    this.reconnectTimer = null;
-                    this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
-                    this.openPort().catch((err: Error) =>
-                        this.log.warn(`Error reopening serial port: ${err.message || err}`),
-                    );
-                }, 5000);
+                this.scheduleReconnect();
             });
         } catch (error) {
             // Cannot open port
             this.log.error(`Error parsing serial port: ${error.message || error}`);
             await this.setStateIfChangedAsync('info.connection', false);
-            this.reconnectTimer ||= setTimeout(() => {
-                this.reconnectTimer = null;
-                this.log.info(`Reconnecting to serial port: ${this.config.serialPort}`);
-                this.openPort().catch((err: Error) =>
-                    this.log.warn(`Error opening serial port: ${err.message || err}`),
-                );
-            }, 5000);
+            this.scheduleReconnect();
         }
     }
 

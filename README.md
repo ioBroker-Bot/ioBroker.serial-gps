@@ -29,6 +29,9 @@ Normally, all devices that deliver NMEA data via serial or USB should work. Here
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+- (@GermanBluefox) Added possibility to select GPS device by name instead of path
+
 ### 0.0.4 (2025-12-03)
 - (@GermanBluefox) Corrected issues for repo checker
 
