@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "serial-gps",
-    "version": "0.0.4",
+    "version": "1.0.0",
     "news": {
+      "1.0.0": {
+        "en": "Added possibility to select GPS device by name instead of path",
+        "de": "Möglichkeit hinzugefügt, GPS-Gerät mit Namen anstelle des Pfads auszuwählen",
+        "ru": "Добавлена возможность выбора GPS-устройства по имени вместо пути",
+        "pt": "Adicionada possibilidade de selecionar dispositivo GPS pelo nome em vez do caminho",
+        "nl": "Toegevoegde mogelijkheid om GPS-apparaat op naam te selecteren in plaats van pad",
+        "fr": "Ajout de la possibilité de sélectionner un périphérique GPS par nom au lieu du chemin",
+        "it": "Aggiunta possibilità di selezionare dispositivo GPS per nome invece di percorso",
+        "es": "Añadido posibilidad de seleccionar el dispositivo GPS por nombre en lugar de ruta",
+        "pl": "Dodano możliwość wyboru urządzenia GPS po nazwie zamiast ścieżki",
+        "uk": "Додана можливість вибору GPS пристрою за назвою замість шляху",
+        "zh-cn": "添加选择名称而不是路径的 GPS 设备的可能性"
+      },
       "0.0.4": {
         "en": "Corrected issues for repo checker",
         "de": "Korrigierte Probleme für Repo Checker",
