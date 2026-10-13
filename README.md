@@ -29,7 +29,7 @@ Normally, all devices that deliver NMEA data via serial or USB should work. Here
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 1.0.2 (2026-10-13)
 * (@GermanBluefox) Admin 7.6.20+ is required. Corrected the roles of some states. Fixed the integration test
 * (@GermanBluefox) The adapter reports the serial port it has open (and in test mode the UDP port 50547) to js-controller 8, which keeps a per-host registry of the occupied resources (`system.host.<name>.usedResources`). A second instance configured for the same GPS receiver is visible as a conflict, and the log names the other instance before the port is opened. An older js-controller is unaffected
 
