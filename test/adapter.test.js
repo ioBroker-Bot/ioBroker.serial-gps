@@ -62,7 +62,7 @@ describe.only('serial-gps: Test parser', () => {
 
             await setup.setAdapterConfig(config.common, config.native);
 
-            setup.startController((_objects, _states) => {
+            setup.startController(true, (_objects, _states) => {
                 objects = _objects;
                 states = _states;
                 _done();

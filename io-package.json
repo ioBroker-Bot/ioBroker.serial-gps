@@ -93,6 +93,7 @@
     "dataSource": "push",
     "tier": 3,
     "nogit": true,
+    "declareUsedResources": true,
     "adminUI": {
       "config": "json"
     },
@@ -117,7 +118,7 @@
     },
     "globalDependencies": [
       {
-        "admin": ">=7.6.17"
+        "admin": ">=7.6.20"
       }
     ]
   },
@@ -255,7 +256,7 @@
           "zh-cn": "位置（纬度；经度）"
         },
         "type": "string",
-        "role": "value",
+        "role": "value.gps",
         "read": true,
         "write": false
       },
@@ -357,7 +358,7 @@
           "zh-cn": "海拔"
         },
         "type": "number",
-        "role": "value.gps.altitude",
+        "role": "value.gps.elevation",
         "unit": "m",
         "read": true,
         "write": false,
@@ -451,7 +452,7 @@
           "2": "DGPS fix"
         },
         "type": "number",
-        "role": "info",
+        "role": "value",
         "read": true,
         "write": false,
         "def": 0
@@ -501,7 +502,7 @@
           "zh-cn": "日期（ddmmyy）"
         },
         "type": "string",
-        "role": "value",
+        "role": "text",
         "read": true,
         "write": false,
         "def": ""
@@ -539,7 +540,7 @@
           "zh-cn": "2D或3D修复模式"
         },
         "type": "string",
-        "role": "info",
+        "role": "text",
         "read": true,
         "write": false,
         "states": {

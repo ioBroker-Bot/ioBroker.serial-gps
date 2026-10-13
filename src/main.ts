@@ -2,6 +2,7 @@ import { type Socket, createSocket } from 'node:dgram';
 import { SerialPort } from 'serialport';
 import { Adapter, type AdapterOptions } from '@iobroker/adapter-core'; // Get common adapter utils
 import type { SerialGpsAdapterConfig } from './types';
+import { freeUsedResource, registerUsedResource, reportResourceConflict } from './lib/usedResources';
 
 function verifyChecksum(sentence: string): boolean {
     const asterisk = sentence.indexOf('*');
@@ -236,6 +237,10 @@ export class SerialGpsAdapter extends Adapter {
      */
     private async withPortReleased<T>(port: string, fn: () => Promise<T>): Promise<T> {
         const release = !!port && this.currentPath === port && !this.portReleased;
+        if (port) {
+            // Name another instance that declared this port, before the test fails to open it
+            await reportResourceConflict(this, 'serialPort', { port }, 'the test');
+        }
         if (release) {
             this.log.info(`Closing serial port ${port} temporarily for test`);
             this.portReleased = true;
@@ -565,10 +570,20 @@ export class SerialGpsAdapter extends Adapter {
             return;
         }
 
+        // The path may change between reconnects in 'device' mode, so the handlers below keep their own copy
+        const usedSerialPort = {
+            port: this.currentPath,
+            baudRate: parseInt(this.config.baudRate as string, 10) || 9600,
+        };
+
+        // Who else declared this port? Asked before it is opened - afterwards the operating
+        // system has decided it, and the error does not name the other instance
+        await reportResourceConflict(this, 'serialPort', usedSerialPort, 'the GPS receiver');
+
         try {
             this.serialPort = new SerialPort({
-                path: this.currentPath,
-                baudRate: parseInt(this.config.baudRate as string, 10) || 9600,
+                path: usedSerialPort.port,
+                baudRate: usedSerialPort.baudRate,
                 autoOpen: false,
             });
 
@@ -580,6 +595,8 @@ export class SerialGpsAdapter extends Adapter {
                     return;
                 }
                 this.log.info(`Serial port opened: ${this.currentPath} @ ${this.config.baudRate}`);
+                // Reported only now: a port that could not be opened is not held by this instance
+                void registerUsedResource(this, 'serialPort', usedSerialPort);
             });
 
             this.serialPort.on('data', async (data: Buffer): Promise<void> => {
@@ -598,6 +615,11 @@ export class SerialGpsAdapter extends Adapter {
 
             this.serialPort.on('close', async (): Promise<void> => {
                 this.log.info(`Serial port closed: ${this.currentPath}`);
+                if (!this.unloading) {
+                    // Free again until the reconnect gets the port back. Not on unload: the host
+                    // marks the entries of a stopped instance as no longer held by itself
+                    void freeUsedResource(this, 'serialPort', { port: usedSerialPort.port });
+                }
                 await this.setStateIfChangedAsync('info.connection', false);
                 this.scheduleReconnect();
             });
@@ -609,7 +631,10 @@ export class SerialGpsAdapter extends Adapter {
         }
     }
 
-    private openUdpServer(port: number = 50547): void {
+    private async openUdpServer(port: number = 50547): Promise<void> {
+        // Who else declared this port? Asked before binding - afterwards the bind error does not name the other instance
+        await reportResourceConflict(this, 'udpPort', { port }, 'the test server');
+
         try {
             const sock = createSocket('udp4');
 
@@ -626,6 +651,13 @@ export class SerialGpsAdapter extends Adapter {
                 this.log.debug(
                     `UDP server listening on ${typeof address === 'string' ? address : `${address.address}:${address.port} for test purposes`}`,
                 );
+                // Reported only now: a port that could not be bound is not held by this instance.
+                // Not freed on close: the socket only closes on unload, and the host handles stopped instances
+                void registerUsedResource(this, 'udpPort', {
+                    port: address.port,
+                    bind: address.address,
+                    family: address.family === 'IPv6' ? 6 : 4,
+                });
             });
 
             sock.bind(port);
@@ -658,7 +690,7 @@ export class SerialGpsAdapter extends Adapter {
         await this.setStateAsync('info.connection', false, true);
         if (this.config.test) {
             // Open UDP port 50547 for test purposes
-            this.openUdpServer(50547);
+            await this.openUdpServer(50547);
         }
 
         this.openPort().catch((err: Error) => this.log.error(`Error opening serial port: ${err.message || err}`));

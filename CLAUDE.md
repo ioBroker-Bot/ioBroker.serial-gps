@@ -24,7 +24,9 @@ Releases use `@alcalzone/release-script`: `npm run release-patch | release-minor
 
 ## Architecture
 
-Everything lives in **`src/main.ts`** — a single `SerialGpsAdapter extends Adapter` class plus three pure module-level helpers. There is no parser module split; the NMEA logic is inline.
+Almost everything lives in **`src/main.ts`** — a single `SerialGpsAdapter extends Adapter` class plus three pure module-level helpers. There is no parser module split; the NMEA logic is inline. The only other module is `src/lib/usedResources.ts` (see below).
+
+**Used resources (js-controller 8):** `common.declareUsedResources: true` in `io-package.json` means the instance itself tells js-controller 8 which exclusive resources it occupies (`system.host.<name>.usedResources.serialPort`). Two types are reported (`usedResources.<type>`): `serialPort` and, in test mode, `udpPort`. `openPort()` asks for a conflicting instance before opening (`reportResourceConflict`), registers the resolved path once `open` succeeds and frees it on `close` (not on unload — the host handles stopped instances). `openUdpServer()` asks before binding and registers on `listening`; it is never freed, because the socket only closes on unload. The admin `test`/`detectBaudRate` only ask for conflicts. All helpers are feature-detected (`CONTROLLER_USED_RESOURCES`) and never throw, so older controllers are unaffected. A new resource type goes into the `UsedResources` map in that module.
 
 **Data flow:** raw bytes → `processReceivedData()` (line buffering on `\n`) → `parseData()` (splits a line into `$`-delimited sentences, verifies checksum, dispatches by sentence type) → `setStateIfChangedAsync()` → ioBroker states under `gps.*` and `info.connection`.
 
